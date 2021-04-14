@@ -3,6 +3,7 @@ const path = require('path');
 const appDir = path.dirname(require.main.filename);
 const uploadDir = path.join(appDir, './public/upload');
 const tempDir = path.join(appDir, './public/upload/temp');
+const archiver = require('archiver');
 
 // 输入路径,返回这个路径是否为目录
 function checkPathIsDir(path){
@@ -85,6 +86,36 @@ function removeAllFileAndFolder(folderPath){
 
 }
 
+async function zipFolder(folderPath) {
+  const archive = archiver('zip', {
+    zlib: { level: 6 } // Sets the compression level.
+  });
+  let targetZipPath = path.join(appDir, `./public/upload/tempZip/${folderPath}.zip`);
+  const output = fs.createWriteStream(targetZipPath);
+  archive.pipe(output);
+
+  const fileNameList = await getFolderAllFileNameList(`./public/upload/${folderPath}`);
+
+  fileNameList.forEach((fileName)=>{
+    archive.append(fs.createReadStream(path.join(appDir, `./public/upload/${folderPath}/${fileName}`)), {name: fileName});
+  });
+
+  archive.finalize();
+
+
+}
+
+async function removeOldZipFile(filePath){
+  return new Promise((resolve, reject)=>{
+    fs.unlink(filePath, (err)=>{
+      if(err){
+        console.log(err)
+      }
+      resolve();
+    });
+  })
+}
+
 module.exports = {
   checkPathIsDir,
   getFolderAllFolderNameList,
@@ -95,4 +126,6 @@ module.exports = {
   tempDir,
   removeAllFileAndFolder,
   getFolderAllFileNameList,
+  zipFolder,
+  removeOldZipFile,
 }

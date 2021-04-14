@@ -6,7 +6,18 @@ const koaStatic = require('koa-static')
 const path = require('path')
 const cors = require('@koa/cors');
 const fs = require('fs');
-const {getFolderAllFolderNameList, Response, createFolderInUploadFolder, uploadDir, tempDir, removeAllFileAndFolder, getFolderAllFileNameList} = require('./utils/index');
+const {
+  getFolderAllFolderNameList,
+  Response,
+  createFolderInUploadFolder,
+  uploadDir,
+  tempDir,
+  removeAllFileAndFolder,
+  getFolderAllFileNameList,
+  appDir,
+  zipFolder,
+  removeOldZipFile,
+} = require('./utils/index');
 
 console.log(11);
 const router = new Router();
@@ -74,6 +85,18 @@ router.post('/upload', async ctx => {
 
   ctx.body = { path: `${ctx.origin}/upload/${folderName}/${fileName}` }
 })
+
+
+router.get('/zip', async ctx => {
+  const {folderName} = ctx.request.query
+  const oldZipFilePath = path.join(uploadDir, `./tempZip/${folderName}.zip`)
+  await removeOldZipFile(oldZipFilePath);
+
+  await zipFolder(folderName);
+  ctx.body = {message: '成功', code: 200, data:`${ctx.origin}/upload/tempZip/${folderName}.zip` }
+});
+
+
 
 app.listen(3003, () => {
   console.log('启动成功')
