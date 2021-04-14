@@ -6,7 +6,7 @@ const koaStatic = require('koa-static')
 const path = require('path')
 const cors = require('@koa/cors');
 const fs = require('fs');
-const {getFolderAllFolderNameList, Response, createFolderInUploadFolder} = require('./utils/index');
+const {getFolderAllFolderNameList, Response, createFolderInUploadFolder, uploadDir, tempDir, removeAllFileAndFolder, getFolderAllFileNameList} = require('./utils/index');
 
 console.log(11);
 const router = new Router();
@@ -16,7 +16,7 @@ app.use(koaBody({
   multipart: true,
   formidable: {
     // 上传目录
-    uploadDir: path.join(__dirname, './public/upload'),
+    uploadDir: path.join(__dirname, './public/upload/temp'),
     // 保留文件扩展名
     keepExtensions: true,
   }
@@ -50,10 +50,29 @@ router.post('/folderName', async ctx => {
   ctx.body = result
 })
 
-router.post('/upload', ctx => {
-  const file = ctx.request.files.fileName || ctx.request.files.file
-  const basename = path.basename(file.path)
-  ctx.body = { path: `${ctx.origin}/upload/${basename}` }
+router.post('/upload', async ctx => {
+  const file = ctx.request.files.fileName || ctx.request.files.file;
+  const folderName = ctx.request.body.folderName;
+  const reader = fs.createReadStream(file.path);
+  let filePath;
+  let fileName;
+
+  // 1. 判断文件名称是否重复,如果重复的话, 文件名称添加时间戳
+  let allFileNameList = await getFolderAllFileNameList(`./public/upload/${folderName}`);
+  if(allFileNameList.includes(file.name)){
+    fileName = `${Math.random()}_${file.name}`;
+    filePath = path.join(uploadDir, folderName) + `/${fileName}`;
+  } else {
+    fileName = `${file.name}`;
+    filePath = path.join(uploadDir, folderName) + `/${fileName}`
+  }
+
+  // 将文件写入
+  const upStream = fs.createWriteStream(filePath);
+  reader.pipe(upStream);
+  removeAllFileAndFolder(tempDir);
+
+  ctx.body = { path: `${ctx.origin}/upload/${folderName}/${fileName}` }
 })
 
 app.listen(3003, () => {

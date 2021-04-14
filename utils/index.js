@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const appDir = path.dirname(require.main.filename);
 const uploadDir = path.join(appDir, './public/upload');
+const tempDir = path.join(appDir, './public/upload/temp');
 
 // 输入路径,返回这个路径是否为目录
 function checkPathIsDir(path){
@@ -16,7 +17,7 @@ function checkPathIsDir(path){
     })
   });
 }
-// 获取指定目录下的一级目录
+// 获取指定目录下的一级所有目录
 function getFolderAllFolderNameList(folderRelativePath){
   return new Promise((resolve, reject)=>{
     fs.readdir(path.join(appDir, folderRelativePath), (e, fileOrDirNameList)=>{
@@ -33,6 +34,28 @@ function getFolderAllFolderNameList(folderRelativePath){
           }
         })
         resolve(folderNameList);
+      });
+    })
+  });
+}
+
+// 获取指定目录下的所有文件名称
+function getFolderAllFileNameList(folderRelativePath){
+  return new Promise((resolve, reject)=>{
+    fs.readdir(path.join(appDir, folderRelativePath), (e, fileOrDirNameList)=>{
+      let promiseList = [];
+      fileOrDirNameList.forEach((fileOrDirName)=>{
+        let fileOrDirPath = path.join(appDir, `${folderRelativePath}/${fileOrDirName}`)
+        promiseList.push(checkPathIsDir(fileOrDirPath))
+      });
+      Promise.all(promiseList).then((checkPathResult)=>{
+        let fileNameList = [];
+        checkPathResult.forEach((isDirFlag, index)=>{
+          if(!isDirFlag){
+            fileNameList.push(fileOrDirNameList[index]);
+          }
+        })
+        resolve(fileNameList);
       });
     })
   });
@@ -57,4 +80,19 @@ function createFolderInUploadFolder(newFolderName){
   });
 }
 
-module.exports = {checkPathIsDir, getFolderAllFolderNameList, appDir, Response, uploadDir, createFolderInUploadFolder}
+// todo 应该将 temp 目录下的文件全部删除
+function removeAllFileAndFolder(folderPath){
+
+}
+
+module.exports = {
+  checkPathIsDir,
+  getFolderAllFolderNameList,
+  appDir,
+  Response,
+  uploadDir,
+  createFolderInUploadFolder,
+  tempDir,
+  removeAllFileAndFolder,
+  getFolderAllFileNameList,
+}
