@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const appDir = path.dirname(require.main.filename);
+const uploadDir = path.join(appDir, './public/upload');
 
 // 输入路径,返回这个路径是否为目录
 function checkPathIsDir(path){
@@ -47,4 +48,13 @@ class Response {
   }
 }
 
-module.exports = {checkPathIsDir, getFolderAllFolderNameList, appDir, Response }
+function createFolderInUploadFolder(newFolderName){
+  return new Promise((resolve, reject)=>{
+    fs.mkdir(`${uploadDir}/${newFolderName}`, (e)=>{
+      if(e){console.log(e);return}
+      resolve(new Response({data: newFolderName, message: '成功', code: 200}))
+    });
+  });
+}
+
+module.exports = {checkPathIsDir, getFolderAllFolderNameList, appDir, Response, uploadDir, createFolderInUploadFolder}

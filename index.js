@@ -6,7 +6,7 @@ const koaStatic = require('koa-static')
 const path = require('path')
 const cors = require('@koa/cors');
 const fs = require('fs');
-const {getFolderAllFolderNameList, Response, } = require('./utils/index');
+const {getFolderAllFolderNameList, Response, createFolderInUploadFolder} = require('./utils/index');
 
 console.log(11);
 const router = new Router();
@@ -31,6 +31,23 @@ router.get('/allFolderName', async ctx => {
   const response = new Response({data: folderNameList, message: '成功', code: 200})
 
   ctx.body = response
+})
+
+// 在 public/upload 目录生成新目录
+router.post('/folderName', async ctx => {
+  const newFolderName = ctx.request.body.folderName;
+  let folderNameList = await getFolderAllFolderNameList('./public/upload');
+  if(!newFolderName){
+    ctx.body = new Response({data: null, message: '请输入目录名称', code: 403});
+    return
+  }
+  if(folderNameList.includes(newFolderName)){
+    ctx.body = new Response({data: null, message: '该目录名称已经存在', code: 403})
+    return;
+  }
+
+  const result = await createFolderInUploadFolder(newFolderName);
+  ctx.body = result
 })
 
 router.post('/upload', ctx => {
