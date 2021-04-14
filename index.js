@@ -6,8 +6,7 @@ const koaStatic = require('koa-static')
 const path = require('path')
 const cors = require('@koa/cors');
 const fs = require('fs');
-const {checkPathIsDir} = require('./utils/index');
-
+const {getFolderAllFolderNameList} = require('./utils/index');
 
 console.log(11);
 const router = new Router();
@@ -26,24 +25,9 @@ app.use(koaStatic(path.join(__dirname, './public')))
 app.use(router.routes());
 
 // 获取 public/upload 目录下的所有目录
-router.get('/allFolderName', ctx => {
-  // 读写文件操作(异步)
-  fs.readdir(path.join(__dirname, './public/upload'), (e, fileOrDirNameList)=>{
-    let promiseList = [];
-    fileOrDirNameList.forEach((fileOrDirName)=>{
-      let fileOrDirPath = path.join(__dirname, `./public/upload/${fileOrDirName}`)
-      promiseList.push(checkPathIsDir(fileOrDirPath))
-    });
-    Promise.all(promiseList).then((checkPathResult)=>{
-      let folderNameList = [];
-      checkPathResult.forEach((isDirFlag, index)=>{
-        if(isDirFlag){
-          folderNameList.push(fileOrDirNameList[index]);
-        }
-      })
-      console.log('upload 目录下的目录为', folderNameList);
-    });
-  })
+router.get('/allFolderName', async ctx => {
+  let folderNameList = await getFolderAllFolderNameList('./public/upload');
+  ctx.body = { data: folderNameList }
 })
 
 router.post('/upload', ctx => {
