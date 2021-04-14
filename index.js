@@ -6,7 +6,7 @@ const koaStatic = require('koa-static')
 const path = require('path')
 const cors = require('@koa/cors');
 const fs = require('fs');
-const {getFolderAllFolderNameList} = require('./utils/index');
+const {getFolderAllFolderNameList, Response, } = require('./utils/index');
 
 console.log(11);
 const router = new Router();
@@ -27,7 +27,10 @@ app.use(router.routes());
 // 获取 public/upload 目录下的所有目录
 router.get('/allFolderName', async ctx => {
   let folderNameList = await getFolderAllFolderNameList('./public/upload');
-  ctx.body = { data: folderNameList }
+
+  const response = new Response({data: folderNameList, message: '成功', code: 200})
+
+  ctx.body = response
 })
 
 router.post('/upload', ctx => {

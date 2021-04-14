@@ -37,4 +37,14 @@ function getFolderAllFolderNameList(folderRelativePath){
   });
 }
 
-module.exports = {checkPathIsDir, getFolderAllFolderNameList, appDir}
+class Response {
+  constructor(config) {
+    const {code, message, data} = config;
+    this.code = code;
+    this.message = message;
+    this.data = data;
+
+  }
+}
+
+module.exports = {checkPathIsDir, getFolderAllFolderNameList, appDir, Response }
