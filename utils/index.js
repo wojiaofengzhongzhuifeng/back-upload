@@ -5,6 +5,9 @@ const uploadDir = path.join(appDir, './public/upload');
 const tempDir = path.join(appDir, './public/upload/temp');
 const archiver = require('archiver');
 
+// 常量
+let ARCHIVE_LIST = ['application/zip'];
+
 // 输入路径,返回这个路径是否为目录
 function checkPathIsDir(path){
   return new Promise((resolve, reject)=>{
@@ -18,6 +21,20 @@ function checkPathIsDir(path){
     })
   });
 }
+// 输入目录路径,返回这个路径子文件夹是否有内容
+function checkPathHasSubContent(path){
+  return new Promise((resolve, reject)=>{
+    fs.readdir(path, (e, data)=>{
+      if(e){console.error(e);return}
+      if(data.length === 0){
+        resolve(false);
+      } else {
+        resolve(true);
+      }
+    })
+  });
+}
+
 // 获取指定目录下的一级所有目录
 function getFolderAllFolderNameList(folderRelativePath){
   return new Promise((resolve, reject)=>{
@@ -128,4 +145,6 @@ module.exports = {
   getFolderAllFileNameList,
   zipFolder,
   removeOldZipFile,
+  ARCHIVE_LIST,
+  checkPathHasSubContent,
 }
