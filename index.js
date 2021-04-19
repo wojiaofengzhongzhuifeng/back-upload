@@ -147,19 +147,20 @@ router.post('/upload', async ctx => {
 
   // 将文件写入
   const upStream = fs.createWriteStream(filePath);
+  upStream.on('finish', async ()=>{
+    // fixme 应该等待 unzip 之后, 才返回数据
+    // 只有生成 zip 之后,才进行解压缩操作
+    // 判断是否为 zip, 如果是的话, 使用工具解压缩,将压缩内容放入到相应目录
+    if(ARCHIVE_LIST.includes(file.type)){
+      await unzip(
+        path.join(uploadDir, `/${folderName}`) + `/${fileName}`,
+        path.join(uploadDir, `/${folderName}/`)
+      );
+    }
+  })
+
   reader.pipe(upStream);
-
-  // 判断是否为 zip, 如果是的话, 使用工具解压缩,将压缩内容放入到相应目录
-  if(ARCHIVE_LIST.includes(file.type)){
-    await unzip(
-      path.join(uploadDir, `/${folderName}`) + `/${fileName}`,
-      path.join(uploadDir, `/${folderName}`)
-    );
-  }
-
-
   removeAllFileAndFolder(tempDir);
-
   ctx.body = { path: `${ctx.origin}/upload/${folderName}/${fileName}` }
 })
 
