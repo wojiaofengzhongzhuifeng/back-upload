@@ -3,7 +3,6 @@ const app = new koa()
 const Router = require('koa-router')
 const koaBody = require('koa-body')
 const koaStatic = require('koa-static')
-const compressing = require('compressing');
 const path = require('path')
 const cors = require('@koa/cors');
 const fs = require('fs');
@@ -21,6 +20,8 @@ const {
   ARCHIVE_LIST,
   checkPathHasSubContent,
   checkPathIsDir,
+  unzip,
+  getFileAndFolderName,
 } = require('./utils/index');
 
 console.log(11);
@@ -34,34 +35,17 @@ app.use(koaBody({
     uploadDir: path.join(__dirname, './public/upload/temp'),
     // 保留文件扩展名
     keepExtensions: true,
-  }
+  },
+  maxFieldsSize: 1000 * 1024 * 1024
 }));
 app.use(koaStatic(path.join(__dirname, './public')))
 app.use(router.routes());
 
 
-// 将 zip 解压
-function unzip(zipPath, folderPath){
-  return new Promise((resolve, reject)=>{
-    compressing.zip.uncompress(zipPath, folderPath)
-      .then(() => {
-        console.log('success');
-        resolve()
-      })
-      .catch(err => {
-        console.error(err);
-        reject()
-      });
-  });
-}
-// 获取一个目录所有文件和目录, 只返回第一级文件与文件夹名称, 不做递归处理
-function getFileAndFolderName(folderPath){
-  return new Promise((resolve, reject)=>{
-    fs.readdir(folderPath, (e, fileOrDirNameList)=>{
-      resolve(fileOrDirNameList);
-    })
-  });
-}
+
+
+
+
 
 router.get('/test', async ctx => {
   //
@@ -69,9 +53,8 @@ router.get('/test', async ctx => {
   //   path.join(uploadDir, '/raojiajun') + `/学号抽取.zip`,
   //   path.join(uploadDir, '/raojiajun')
   //   );
-  const result = await checkPathHasSubContent(path.join(appDir, './public/upload/raojiajun/学号抽取'))
 
-  ctx.body = {message: result}
+  ctx.body = {message: Math.random()}
 })
 
 router.post('/folderSubContentList', async ctx => {
@@ -176,7 +159,7 @@ router.get('/zip', async ctx => {
 
 
 
-app.listen(3003, () => {
+app.listen(7778, () => {
   console.log('启动成功')
   console.log('http://localhost:3000')
 });

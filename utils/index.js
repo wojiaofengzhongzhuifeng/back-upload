@@ -4,6 +4,8 @@ const appDir = path.dirname(require.main.filename);
 const uploadDir = path.join(appDir, './public/upload');
 const tempDir = path.join(appDir, './public/upload/temp');
 const archiver = require('archiver');
+const compressing = require('compressing');
+
 
 // 常量
 let ARCHIVE_LIST = ['application/zip'];
@@ -133,6 +135,30 @@ async function removeOldZipFile(filePath){
   })
 }
 
+// 将 zip 解压
+function unzip(zipPath, folderPath){
+  return new Promise((resolve, reject)=>{
+    compressing.zip.uncompress(zipPath, folderPath)
+      .then(() => {
+        console.log('success');
+        resolve()
+      })
+      .catch(err => {
+        console.error(err);
+        reject()
+      });
+  });
+}
+
+// 获取一个目录所有文件和目录, 只返回第一级文件与文件夹名称, 不做递归处理
+function getFileAndFolderName(folderPath){
+  return new Promise((resolve, reject)=>{
+    fs.readdir(folderPath, (e, fileOrDirNameList)=>{
+      resolve(fileOrDirNameList);
+    })
+  });
+}
+
 module.exports = {
   checkPathIsDir,
   getFolderAllFolderNameList,
@@ -147,4 +173,6 @@ module.exports = {
   removeOldZipFile,
   ARCHIVE_LIST,
   checkPathHasSubContent,
+  unzip,
+  getFileAndFolderName,
 }
