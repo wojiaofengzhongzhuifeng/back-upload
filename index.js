@@ -6,6 +6,7 @@ const koaStatic = require('koa-static')
 const path = require('path')
 const cors = require('@koa/cors');
 const fs = require('fs');
+const { v4: uuidv4 } = require('uuid');
 const {
   getFolderAllFolderNameList,
   Response,
@@ -117,16 +118,20 @@ router.post('/upload', async ctx => {
   const reader = fs.createReadStream(file.path);
   let filePath;
   let fileName;
+  let emptyFileDirName;// 临时保存压缩包的内容
+  let randomUUID;
 
   // 1. 判断文件名称是否重复,如果重复的话, 文件名称添加时间戳
   let allFileNameList = await getFolderAllFileNameList(`./public/upload/${folderName}`);
   if(allFileNameList.includes(file.name)){
-    fileName = `${Math.random()}_${file.name}`;
+    randomUUID = uuidv4();
+    fileName = `${randomUUID}_${file.name}`;
     filePath = path.join(uploadDir, folderName) + `/${fileName}`;
   } else {
     fileName = `${file.name}`;
-    filePath = path.join(uploadDir, folderName) + `/${fileName}`
+    filePath = path.join(uploadDir, folderName) + `/${fileName}`;
   }
+  emptyFileDirName = filePath.split('.')[0];
 
   // 将文件写入
   const upStream = fs.createWriteStream(filePath);
@@ -135,16 +140,25 @@ router.post('/upload', async ctx => {
     // 只有生成 zip 之后,才进行解压缩操作
     // 判断是否为 zip, 如果是的话, 使用工具解压缩,将压缩内容放入到相应目录
     if(ARCHIVE_LIST.includes(file.type)){
-      await unzip(
-        path.join(uploadDir, `/${folderName}`) + `/${fileName}`,
-        path.join(uploadDir, `/${folderName}/`)
-      );
+      // 如果是压缩包
+      // 生成 文件名称添加时间戳 的空目录
+      fs.mkdir(emptyFileDirName, async ()=>{
+        await unzip(
+          filePath,
+          emptyFileDirName
+        );
+      });
+
     }
   })
 
   reader.pipe(upStream);
   removeAllFileAndFolder(tempDir);
-  ctx.body = { path: `${ctx.origin}/upload/${folderName}/${fileName}` }
+  if(randomUUID){
+    ctx.body = { path: `${ctx.origin}/upload/${folderName}/${fileName}`, uuid:  randomUUID}
+  } else {
+    ctx.body = { path: `${ctx.origin}/upload/${folderName}/${fileName}`}
+  }
 })
 
 
