@@ -159,6 +159,11 @@ function getFileAndFolderName(folderPath){
   });
 }
 
+// 获取目录的占的内存大小
+function getFolderSize(folderPath){
+
+}
+
 module.exports = {
   checkPathIsDir,
   getFolderAllFolderNameList,

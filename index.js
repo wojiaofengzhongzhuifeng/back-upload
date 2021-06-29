@@ -157,6 +157,15 @@ router.get('/zip', async ctx => {
   ctx.body = {message: '成功', code: 200, data:`${ctx.origin}/upload/tempZip/${folderName}.zip` }
 });
 
+router.get('/allPerson', async ctx => {
+  const allFolderName = await getFolderAllFolderNameList('./public/upload');
+  const allPerson = allFolderName.filter((folderName)=>{
+    return !(folderName === 'temp' || folderName === 'tempZip');
+  });
+  ctx.body = {message: '成功', code: 200, data: allPerson }
+});
+
+
 
 
 app.listen(7778, () => {
